@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crude Analyzer</title>
+  <style>
+    /* Basic reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #0f172a; /* dark slate-900 */
+      color: #ffffff;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background-color: #1e293b; /* slate-800 */
+      border-radius: 1rem;
+      width: 400px;
+      padding: 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .title {
+      font-size: 1.75rem; /* ~ text-2xl */
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group {
+      margin-bottom: 1.25rem;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      background-color: #334155; /* slate-700 */
+      color: #ffffff;
+      font-size: 1rem;
+    }
+    .input-group input:focus {
+      outline: 2px solid #22d3ee; /* cyan-400-ish */
+    }
+
+    .btn {
+      background-color: #06b6d4; /* cyan-500 */
+      color: #0f172a; /* dark background for contrast */
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .btn:hover {
+      background-color: #0891b2; /* cyan-600-ish */
+    }
+
+    .result {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .result p {
+      background-color: #334155; /* slate-700 */
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .toggle-details {
+      margin-top: 1rem;
+      text-decoration: underline;
+      color: #22d3ee; /* cyan-400 */
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .details {
+      margin-top: 1rem;
+      background-color: #334155; /* slate-700 */
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    .details b {
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">Crude Analyzer</div>
+    <div class="input-group">
+      <label for="density">Density (kg/m³)</label>
+      <input type="number" id="density" placeholder="Enter density" />
+    </div>
+    <button class="btn" id="analyzeBtn">Analyze</button>
+
+    <div class="result" id="resultSection" style="display: none;">
+      <p id="apiText">API Gravity: —</p>
+      <p id="sgText">Specific Gravity: —</p>
+      <p id="classText">Classification: —</p>
+
+      <button class="toggle-details" id="toggleDetailsBtn">
+        View Calculation Details
+      </button>
+
+      <div class="details" id="detailsBox" style="display: none;">
+        <div>
+          <b>Specific Gravity (SG):</b><br />
+          SG = Density / 1000 <br />
+          SG = <span id="densityVal1"></span> / 1000 = <span id="sgVal"></span>
+        </div>
+
+        <div style="margin-top: 0.75rem;">
+          <b>API Gravity:</b><br />
+          API = (141.5 / SG) – 131.5 <br />
+          API = (141.5 / <span id="sgVal2"></span>) – 131.5 = <span id="apiVal2"></span> °API
+        </div>
+
+        <div style="margin-top: 0.75rem;">
+          <b>Classification:</b><br />
+          Light crude: API > 31.1 <br />
+          Medium crude: 22.3 ≤ API ≤ 31.1 <br />
+          Heavy crude: API < 22.3 <br />
+          → This crude is <b><span id="classVal"></span></b>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const densityInput = document.getElementById("density");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const resultSection = document.getElementById("resultSection");
+    const apiText = document.getElementById("apiText");
+    const sgText = document.getElementById("sgText");
+    const classText = document.getElementById("classText");
+
+    const toggleDetailsBtn = document.getElementById("toggleDetailsBtn");
+    const detailsBox = document.getElementById("detailsBox");
+
+    const densityVal1 = document.getElementById("densityVal1");
+    const sgVal = document.getElementById("sgVal");
+    const sgVal2 = document.getElementById("sgVal2");
+    const apiVal2 = document.getElementById("apiVal2");
+    const classVal = document.getElementById("classVal");
+
+    analyzeBtn.addEventListener("click", () => {
+      const d = parseFloat(densityInput.value);
+      if (isNaN(d) || d <= 0) {
+        alert("Please enter a valid density value.");
+        return;
+      }
+      const sg = d / 1000;
+      const api = 141.5 / sg - 131.5;
+
+      let classification = "Heavy crude";
+      if (api > 31.1) classification = "Light crude";
+      else if (api >= 22.3) classification = "Medium crude";
+
+      // Show results
+      resultSection.style.display = "flex";
+      apiText.textContent = `API Gravity: ${api.toFixed(2)} °API`;
+      sgText.textContent = `Specific Gravity: ${sg.toFixed(4)}`;
+      classText.textContent = `Classification: ${classification}`;
+
+      // Fill details
+      densityVal1.textContent = d.toFixed(2);
+      sgVal.textContent = sg.toFixed(4);
+      sgVal2.textContent = sg.toFixed(4);
+      apiVal2.textContent = api.toFixed(2);
+      classVal.textContent = classification;
+
+      // Initially hide details on new analysis
+      detailsBox.style.display = "none";
+      toggleDetailsBtn.textContent = "View Calculation Details";
+    });
+
+    toggleDetailsBtn.addEventListener("click", () => {
+      if (detailsBox.style.display === "none") {
+        detailsBox.style.display = "block";
+        toggleDetailsBtn.textContent = "Hide Calculation Details";
+      } else {
+        detailsBox.style.display = "none";
+        toggleDetailsBtn.textContent = "View Calculation Details";
+      }
+    });
+  </script>
+</body>
+</html>
